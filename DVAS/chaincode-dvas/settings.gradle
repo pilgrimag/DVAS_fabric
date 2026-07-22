@@ -1,0 +1,10 @@
+// settings.gradle
+pluginManagement {
+    repositories {
+        gradlePluginPortal() // 这是 Gradle 插件的默认中央仓库
+        mavenCentral()       // 这通常也很有用
+    }
+}
+rootProject.name = 'chaincode-dvas' // 这里设置您的项目名称
+
+

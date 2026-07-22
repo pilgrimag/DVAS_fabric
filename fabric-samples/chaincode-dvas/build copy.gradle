@@ -1,0 +1,68 @@
+// plugins {
+//     id 'java'
+//     id 'com.github.johnrengelman.shadow' version '8.1.1' // 用于打包所有依赖到一个JAR
+//     id 'application' 
+// }
+
+// repositories {
+//         // !!! 关键：添加本地 JARs 目录，并将其放在最前面 !!!
+//     flatDir { dirs 'libs' } 
+    
+//     mavenLocal()
+//     mavenCentral()
+//     maven {
+//         url 'https://jitpack.io'
+//     }
+//     maven { url 'https://maven.aliyun.com/repository/public' }
+// }
+
+// dependencies {
+//     // Hyperledger Fabric Chaincode Shim API
+//     //会不会就是这一句的格式有问题呢！
+//     //implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.5.0'
+//     //implementation 'org.hyperledger.fabric-chaincode-java:fabric-contract-api-java:2.5.0' // **添加此行** (与 shim 使用相同版本)
+//         // **确保只保留以下两行，并且没有其他旧的 Fabric 依赖！**
+//     implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.5.0' // 使用明确的 2.5.1
+//     //implementation 'org.hyperledger.fabric-chaincode-java:fabric-contract-api-java:2.5.0' // 与 shim 保持一致
+
+
+//     // JPBC library (与您的原始 pom.xml 保持一致)
+//     implementation 'it.unisa.dia.gas.jpbc:jpbc-api:2.0.0'
+//     implementation 'it.unisa.dia.gas.jpbc:jpbc-pbc:2.0.0'
+//     implementation 'it.unisa.dia.gas.jpbc:jpbc-crypto:2.0.0'
+//     implementation 'it.unisa.dia.gas.jpbc:jpbc-mm:2.0.0'
+//     implementation 'it.unisa.dia.gas.jpbc:jpbc-plaf:2.0.0'
+
+//     // JNA (如果 JPBC 依赖它，保留)
+//     implementation 'net.java.dev.jna:jna:3.2.5'
+//     // Bouncy Castle (如果 JPBC 依赖它，保留)
+//     implementation 'org.bouncycastle:bcprov-jdk16:1.46'
+
+//     // 用于 JSON 序列化 (queryAllMappings 方法需要)
+//     //implementation 'com.google.code.gson:gson:2.10.1' // Fabric 链码环境中通常没有内置 JSON 库
+//     //implementation 'com.google.code.gson:gson:2.10.1' // 您的代码使用了 Gson
+//     implementation 'org.json:json:+'
+// }
+
+// // ShadowJar 配置：将所有依赖打包进一个 Fat JAR
+// shadowJar {
+//     archiveBaseName.set('dvas-chaincode') // 输出 JAR 文件名，例如 dvas-chaincode.jar
+//     archiveClassifier.set('')
+//     archiveVersion.set('')
+//     // 关键：Fabric Chaincode Shim 需要一个特殊的 Main-Class
+//     manifest {
+//         attributes 'Main-Class': 'org.hyperledger.fabric.contract.ContractRouter'
+//     }
+// }
+
+// // 确保 application 块也存在，并且 mainClass 和 applicationName 设置正确，如下所示：
+// application {
+//     mainClass = 'org.hyperledger.fabric.contract.ContractRouter'
+//     applicationName = 'dvas-chaincode'
+// }
+
+// // 编译设置，确保兼容 Java 8
+// java {
+//     sourceCompatibility = JavaVersion.VERSION_11
+//     targetCompatibility = JavaVersion.VERSION_11
+// }

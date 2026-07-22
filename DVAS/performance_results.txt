@@ -1,0 +1,126 @@
+[[1;34mINFO[m] Scanning for projects...
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--------------------------< [0;36mcom.example:dvas[0;1m >--------------------------[m
+[[1;34mINFO[m] [1mBuilding dvas 1.0-SNAPSHOT[m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mexec-maven-plugin:3.1.0:java[m [1m(default-cli)[m @ [36mdvas[0;1m ---[m
+Starting performance test for Total Messages: 50, Sensitive Messages: 50 (Number of runs: 20)
+
+--- Successfully connected to Fabric Network and Chaincode ---
+Blockchain adapter initialized. Now starting performance measurements.
+
+--- Starting Run 1/20 ---
+Blockchain adapter initialized. Now interacting with Fabric chaincode.
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+joining
+signing
+addmap前
+准备提交交易: addMapping
+PublicKey: jnCVXNDrxvxDthmUAi+z2TDQxuQub49VSMlfi/Mueur8PXdYl3...
+22:36:45.554 [com.dvas.Main.main()] ERROR org.hyperledger.fabric.gateway.impl.TransactionImpl - No valid proposal responses received. 3 peer error responses: error in simulation: failed to execute transaction e91fd060e5cea4f51355b730274b70ac4995da8420cad3f02884bfb50e7c2beb: could not launch chaincode chaincode_1.0:3238e0b90f41c0ac838fd1b580347fceaa7ca35ea72f184b597d141f3d5ed099: chaincode registration failed: container exited with 0; error in simulation: failed to execute transaction e91fd060e5cea4f51355b730274b70ac4995da8420cad3f02884bfb50e7c2beb: could not launch chaincode chaincode_1.0:3238e0b90f41c0ac838fd1b580347fceaa7ca35ea72f184b597d141f3d5ed099: chaincode registration failed: container exited with 0; error in simulation: failed to execute transaction e91fd060e5cea4f51355b730274b70ac4995da8420cad3f02884bfb50e7c2beb: could not launch chaincode chaincode_1.0:3238e0b90f41c0ac838fd1b580347fceaa7ca35ea72f184b597d141f3d5ed099: chaincode registration failed: container exited with 0
+--- Gateway connection closed ---
+
+--- Average Performance Results (over 20 runs) ---
+Average Setup Time:       3529.99 ms
+Average Join Time:        2.63 ms
+Average Sign Time (Pure Crypto): 0.00 ms
+Average Blockchain Submit Time: 0.00 ms
+Average Sanitizing Total Time: 0.00 ms
+  - Average Sanitizing Compute Time (Off-chain): 0.00 ms
+  - Average Sanitizing Fabric Query Time: 0.00 ms
+Average Aggregate Time:   0.00 ms
+Average AggVerify Time:   0.00 ms
+[[1;33mWARNING[m] thread Thread[PeriodicMetricReader-1,5,com.dvas.Main] was in[[1;33mWARNING[m] thread Thread[PeriodicMetricReader-1,5,com.dvas.Main] was interrupted but is still alive after waiting at least 14998msecs
+[[1;33mWARNING[m] thread Thread[PeriodicMetricReader-1,5,com.dvas.Main] will linger despite being asked to die via interruption
+[[1;33mWARNING[m] thread Thread[pool-10-thread-1,5,com.dvas.Main] will linger despite being asked to die via interruption
+[[1;33mWARNING[m] thread Thread[pool-8-thread-1,5,com.dvas.Main] will linger despite being asked to die via interruption
+[[1;33mWARNING[m] thread Thread[pool-8-thread-2,5,com.dvas.Main] will linger despite being asked to die via interruption
+[[1;33mWARNING[m] thread Thread[pool-8-thread-3,5,com.dvas.Main] will linger despite being asked to die via interruption
+[[1;33mWARNING[m] thread Thread[pool-8-thread-4,5,com.dvas.Main] will linger despite being asked to die via interruption
+[[1;33mWARNING[m] thread Thread[pool-8-thread-5,5,com.dvas.Main] will linger despite being asked to die via interruption
+[[1;33mWARNING[m] thread Thread[pool-8-thread-6,5,com.dvas.Main] will linger despite being asked to die via interruption
+[[1;33mWARNING[m] thread Thread[pool-8-thread-7,5,com.dvas.Main] will linger despite being asked to die via interruption
+[[1;33mWARNING[m] thread Thread[Thread-1,5,com.dvas.Main] will linger despite being asked to die via interruption
+[[1;33mWARNING[m] thread Thread[pool-1-thread-1,5,com.dvas.Main] will linger despite being asked to die via interruption
+[[1;33mWARNING[m] NOTE: 11 thread(s) did not finish despite being asked to via interruption. This is not a problem with exec:java, it is a problem with the running code. Although not serious, it should be remedied.
+[[1;33mWARNING[m] Couldn't destroy threadgroup org.codehaus.mojo.exec.ExecJavaMojo$IsolatedThreadGroup[name=com.dvas.Main,maxpri=10]
+[1;31mjava.lang.IllegalThreadStateException[m
+    [1mat[m java.lang.ThreadGroup.destroy ([1mThreadGroup.java:776[m)
+    [1mat[m org.codehaus.mojo.exec.ExecJavaMojo.execute ([1mExecJavaMojo.java:319[m)
+    [1mat[m org.apache.maven.plugin.DefaultBuildPluginManager.executeMojo ([1mDefaultBuildPluginManager.java:137[m)
+    [1mat[m org.apache.maven.lifecycle.internal.MojoExecutor.execute ([1mMojoExecutor.java:210[m)
+    [1mat[m org.apache.maven.lifecycle.internal.MojoExecutor.execute ([1mMojoExecutor.java:156[m)
+    [1mat[m org.apache.maven.lifecycle.internal.MojoExecutor.execute ([1mMojoExecutor.java:148[m)
+    [1mat[m org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject ([1mLifecycleModuleBuilder.java:117[m)
+    [1mat[m org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject ([1mLifecycleModuleBuilder.java:81[m)
+    [1mat[m org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build ([1mSingleThreadedBuilder.java:56[m)
+    [1mat[m org.apache.maven.lifecycle.internal.LifecycleStarter.execute ([1mLifecycleStarter.java:128[m)
+    [1mat[m org.apache.maven.DefaultMaven.doExecute ([1mDefaultMaven.java:305[m)
+    [1mat[m org.apache.maven.DefaultMaven.doExecute ([1mDefaultMaven.java:192[m)
+    [1mat[m org.apache.maven.DefaultMaven.execute ([1mDefaultMaven.java:105[m)
+    [1mat[m org.apache.maven.cli.MavenCli.execute ([1mMavenCli.java:956[m)
+    [1mat[m org.apache.maven.cli.MavenCli.doMain ([1mMavenCli.java:288[m)
+    [1mat[m org.apache.maven.cli.MavenCli.main ([1mMavenCli.java:192[m)
+    [1mat[m jdk.internal.reflect.NativeMethodAccessorImpl.invoke0 ([1mNative Method[m)
+    [1mat[m jdk.internal.reflect.NativeMethodAccessorImpl.invoke ([1mNativeMethodAccessorImpl.java:62[m)
+    [1mat[m jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke ([1mDelegatingMethodAccessorImpl.java:43[m)
+    [1mat[m java.lang.reflect.Method.invoke ([1mMethod.java:566[m)
+    [1mat[m org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced ([1mLauncher.java:289[m)
+    [1mat[m org.codehaus.plexus.classworlds.launcher.Launcher.launch ([1mLauncher.java:229[m)
+    [1mat[m org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode ([1mLauncher.java:415[m)
+    [1mat[m org.codehaus.plexus.classworlds.launcher.Launcher.main ([1mLauncher.java:356[m)
+--------------------[m
+[[1;34mINFO[m] [1;32mBUILD SUCCESS[m
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] Total time:  49.462 s
+[[1;34mINFO[m] Finished at: 2025-09-25T22:37:09+08:00
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
