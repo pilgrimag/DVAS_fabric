@@ -1,144 +1,123 @@
 package com.dvas.chaincode;
 
 import com.google.gson.Gson;
-import org.hyperledger.fabric.shim.ChaincodeBase;
+
+import org.hyperledger.fabric.contract.Context;
+import org.hyperledger.fabric.contract.ContractInterface;
+import org.hyperledger.fabric.contract.annotation.Contract;
+import org.hyperledger.fabric.contract.annotation.Default;
+import org.hyperledger.fabric.contract.annotation.Info;
+import org.hyperledger.fabric.contract.annotation.Transaction;
+import org.hyperledger.fabric.shim.ChaincodeException;
 import org.hyperledger.fabric.shim.ChaincodeStub;
-import org.hyperledger.fabric.shim.ResponseUtils;
 import org.hyperledger.fabric.shim.ledger.KeyValue;
 import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class DVASChaincode extends ChaincodeBase {
+/**
+ * DVAS ledger contract.
+ *
+ * Stores the mapping:
+ *
+ *     publicKeyBase64 -> phiBase64
+ *
+ * Cryptographic pairing operations remain outside the chaincode.
+ */
+@Contract(
+    name = "dvas",
+    info = @Info(
+        title = "DVAS Mapping Contract",
+        description =
+            "Stores DVAS public-key-to-phi mappings.",
+        version = "1.1.0"
+    )
+)
+@Default
+public final class DVASChaincode
+        implements ContractInterface {
 
-    private static final Gson GSON = new Gson();
+    private static final Gson GSON =
+        new Gson();
 
-    @Override
-    public Response init(final ChaincodeStub stub) {
-        return ResponseUtils.newSuccessResponse("Init Success!");
+    /**
+     * No application state needs to be initialized.
+     */
+    @Transaction(intent = Transaction.TYPE.SUBMIT)
+    public String InitLedger(final Context context) {
+        return "DVAS ledger initialized.";
     }
 
-    @Override
-    public Response invoke(final ChaincodeStub stub) {
-        final String function = stub.getFunction();
-        final List<String> args = stub.getParameters();
-
-        try {
-            return switch (function) {
-                case "InitLedger" ->
-                    ResponseUtils.newSuccessResponse(
-                        "InitLedger function called."
-                    );
-
-                case "addMapping" -> invokeAddMapping(stub, args);
-
-                case "queryPhi" -> invokeQueryPhi(stub, args);
-
-                case "queryAllMappings" ->
-                    invokeQueryAllMappings(stub, args);
-
-                default ->
-                    ResponseUtils.newErrorResponse(
-                        "Invalid chaincode function name: " + function
-                    );
-            };
-        } catch (RuntimeException exception) {
-            return ResponseUtils.newErrorResponse(
-                "Error during chaincode invocation: " +
-                exception.getMessage()
-            );
-        }
-    }
-
-    private Response invokeAddMapping(
-        final ChaincodeStub stub,
-        final List<String> args
-    ) {
-        if (args.size() != 2) {
-            return ResponseUtils.newErrorResponse(
-                "addMapping expects 2 arguments: " +
-                "[publicKeyBase64, phiBase64]."
-            );
-        }
-
-        final String result = addMapping(
-            stub,
-            args.get(0),
-            args.get(1)
-        );
-
-        return ResponseUtils.newSuccessResponse(result);
-    }
-
-    private Response invokeQueryPhi(
-        final ChaincodeStub stub,
-        final List<String> args
-    ) {
-        if (args.size() != 1) {
-            return ResponseUtils.newErrorResponse(
-                "queryPhi expects 1 argument: [publicKeyBase64]."
-            );
-        }
-
-        final String phi = queryPhi(stub, args.get(0));
-
-        if (phi == null) {
-            return ResponseUtils.newErrorResponse(
-                "Phi_i not found for the supplied public key."
-            );
-        }
-
-        return ResponseUtils.newSuccessResponse(
-            phi.getBytes(StandardCharsets.UTF_8)
-        );
-    }
-
-    private Response invokeQueryAllMappings(
-        final ChaincodeStub stub,
-        final List<String> args
-    ) {
-        if (!args.isEmpty()) {
-            return ResponseUtils.newErrorResponse(
-                "queryAllMappings expects no arguments."
-            );
-        }
-
-        final String result = queryAllMappings(stub);
-
-        return ResponseUtils.newSuccessResponse(
-            result.getBytes(StandardCharsets.UTF_8)
-        );
-    }
-
+    /**
+     * Adds or replaces one public-key-to-phi mapping.
+     */
+    @Transaction(intent = Transaction.TYPE.SUBMIT)
     public String addMapping(
-        final ChaincodeStub stub,
+        final Context context,
         final String publicKeyBase64,
         final String phiBase64
     ) {
-        requireNonBlank(publicKeyBase64, "Public key");
-        requireNonBlank(phiBase64, "Phi_i");
+        requireNonBlank(
+            publicKeyBase64,
+            "Public key"
+        );
 
-        stub.putStringState(publicKeyBase64, phiBase64);
+        requireNonBlank(
+            phiBase64,
+            "Phi_i"
+        );
+
+        context.getStub().putStringState(
+            publicKeyBase64,
+            phiBase64
+        );
 
         return "Mapping added successfully.";
     }
 
+    /**
+     * Returns the phi value associated with a public key.
+     */
+    @Transaction(intent = Transaction.TYPE.EVALUATE)
     public String queryPhi(
-        final ChaincodeStub stub,
+        final Context context,
         final String publicKeyBase64
     ) {
-        requireNonBlank(publicKeyBase64, "Public key");
+        requireNonBlank(
+            publicKeyBase64,
+            "Public key"
+        );
 
-        final String value = stub.getStringState(publicKeyBase64);
+        final String phiBase64 =
+            context.getStub().getStringState(
+                publicKeyBase64
+            );
 
-        return value == null || value.isBlank() ? null : value;
+        if (
+            phiBase64 == null ||
+            phiBase64.isBlank()
+        ) {
+            throw new ChaincodeException(
+                "Phi_i not found for the supplied public key."
+            );
+        }
+
+        return phiBase64;
     }
 
-    public String queryAllMappings(final ChaincodeStub stub) {
+    /**
+     * Returns every mapping as a JSON array.
+     */
+    @Transaction(intent = Transaction.TYPE.EVALUATE)
+    public String queryAllMappings(
+        final Context context
+    ) {
+        final ChaincodeStub stub =
+            context.getStub();
+
         final List<Map<String, String>> mappings =
             new ArrayList<>();
 
@@ -150,13 +129,14 @@ public final class DVASChaincode extends ChaincodeBase {
                 final Map<String, String> mapping =
                     new LinkedHashMap<>();
 
-                mapping.put("publicKey", keyValue.getKey());
+                mapping.put(
+                    "publicKey",
+                    keyValue.getKey()
+                );
+
                 mapping.put(
                     "phi",
-                    new String(
-                        keyValue.getValue(),
-                        StandardCharsets.UTF_8
-                    )
+                    keyValue.getStringValue()
                 );
 
                 mappings.add(mapping);
@@ -170,14 +150,13 @@ public final class DVASChaincode extends ChaincodeBase {
         final String value,
         final String fieldName
     ) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(
+        if (
+            value == null ||
+            value.isBlank()
+        ) {
+            throw new ChaincodeException(
                 fieldName + " cannot be empty."
             );
         }
-    }
-
-    public static void main(final String[] args) {
-        new DVASChaincode().start(args);
     }
 }

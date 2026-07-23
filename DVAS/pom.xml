@@ -38,6 +38,10 @@
         <slf4j.version>2.0.7</slf4j.version>
 
         <gson.version>2.10.1</gson.version>
+
+        <exec.mainClass>
+            com.dvas.Main
+        </exec.mainClass>
     </properties>
 
     <dependencies>
@@ -131,7 +135,7 @@
                 <version>3.1.0</version>
 
                 <configuration>
-                    <mainClass>com.dvas.Main</mainClass>
+                    <mainClass>${exec.mainClass}</mainClass>
                 </configuration>
             </plugin>
 
