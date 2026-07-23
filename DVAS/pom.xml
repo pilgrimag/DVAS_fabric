@@ -1,122 +1,141 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+             http://maven.apache.org/POM/4.0.0
+             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
     <artifactId>dvas</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <name>DVAS Client and Algorithm</name>
+
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.sourceEncoding>
+            UTF-8
+        </project.build.sourceEncoding>
+
+        <maven.compiler.release>
+            21
+        </maven.compiler.release>
+
+        <jpbc.version>2.0.0</jpbc.version>
+
+        <fabric.gateway.version>
+            1.10.0
+        </fabric.gateway.version>
+
+        <grpc.version>1.76.0</grpc.version>
+
+        <protobuf.version>
+            4.33.0
+        </protobuf.version>
+
+        <slf4j.version>2.0.7</slf4j.version>
+
+        <gson.version>2.10.1</gson.version>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>central</id>
-            <name>Maven Central</name>
-            <url>https://repo1.maven.org/maven2</url>
-        </repository>
-        <repository>
-            <id>oss-sonatype</id>
-            <name>OSS Sonatype</name>
-            <url>https://oss.sonatype.org/content/repositories/releases/</url>
-        </repository>
-        <repository>
-            <id>aliyunmaven</id>
-            <name>阿里云公共仓库</name>
-            <url>https://maven.aliyun.com/repository/public</url>
-        </repository>
-    </repositories>
-
-
     <dependencies>
-        <!-- JPBC Libraries -->
+
+        <!--
+            JPBC API and pure-Java implementation.
+            These artifacts are installed by:
+                ./scripts/install-jpbc-local.sh
+        -->
         <dependency>
             <groupId>it.unisa.dia.gas</groupId>
             <artifactId>jpbc-api</artifactId>
-            <version>2.0.0</version>
+            <version>${jpbc.version}</version>
         </dependency>
 
         <dependency>
             <groupId>it.unisa.dia.gas</groupId>
             <artifactId>jpbc-plaf</artifactId>
-            <version>2.0.0</version>
+            <version>${jpbc.version}</version>
         </dependency>
 
-        <!-- JNA -->
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna</artifactId>
-            <version>5.13.0</version>
-        </dependency>
-
-
-        <!-- Fabric Gateway -->
-        <dependency>
-            <groupId>org.hyperledger.fabric-sdk-java</groupId>
-            <artifactId>fabric-sdk-java</artifactId>
-            <version>1.4.7</version>
-        </dependency>
-
+        <!--
+            Fabric Gateway Client API for Fabric 2.4+.
+            Java packages use org.hyperledger.fabric.client.
+        -->
         <dependency>
             <groupId>org.hyperledger.fabric</groupId>
-            <artifactId>fabric-gateway-java</artifactId>
-            <version>2.2.0</version>
+            <artifactId>fabric-gateway</artifactId>
+            <version>${fabric.gateway.version}</version>
         </dependency>
 
-        <!-- gRPC Netty Shaded -->
+        <!--
+            TLS-enabled gRPC transport used to connect to the
+            Gateway service exposed by peer0.org1.example.com.
+        -->
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty-shaded</artifactId>
-            <version>1.33.1</version>
-        </dependency>
-
-        <!-- SLF4J -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.7</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>2.0.7</version>
+            <version>${grpc.version}</version>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Gson -->
+        <!--
+            Explicitly align protobuf with the existing BASR client.
+        -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>${protobuf.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.10.1</version>
+            <version>${gson.version}</version>
         </dependency>
-    </dependencies>
 
+    </dependencies>
 
     <build>
         <plugins>
-            <!-- Maven Compiler Plugin (保持不变) -->
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.13.0</version>
+
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <release>21</release>
+                    <encoding>UTF-8</encoding>
+                    <showWarnings>true</showWarnings>
                 </configuration>
             </plugin>
-            <!-- Exec Plugin (保持不变) -->
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
+
                 <configuration>
                     <mainClass>com.dvas.Main</mainClass>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
+
 </project>

@@ -1,38 +1,16 @@
 package com.dvas;
 
 import it.unisa.dia.gas.jpbc.Element;
-import it.unisa.dia.gas.jpbc.Pairing;
-import it.unisa.dia.gas.plaf.jpbc.pairing.PairingFactory;
 
-import java.io.IOException;
-import java.nio.file.Files; // 确保 Files 类被导入
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import org.hyperledger.fabric.client.Contract;
 
-import java.security.PrivateKey;
-import java.security.Security;
-import java.security.cert.X509Certificate;
-import java.util.*;
-
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-
-import org.hyperledger.fabric.gateway.Contract;
-import org.hyperledger.fabric.gateway.Gateway;
-import org.hyperledger.fabric.gateway.Identity;
-import org.hyperledger.fabric.gateway.Network;
-import org.hyperledger.fabric.gateway.Wallet;
-import org.hyperledger.fabric.gateway.Wallets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Main {
-
-    private static final String CHANNEL_NAME = "mychannel";
-    private static final String CHAINCODE_NAME = "chaincode";
     private static final int NUM_RUNS = 20; // 运行次数，用于取平均。根据表格要求设置为20。
 
     // 用于收集每个阶段的执行时间 (每个List的一个元素代表一个回合的总时间)
@@ -51,7 +29,6 @@ public class Main {
     private static List<Long> aggVerifyTimes = new ArrayList<>(); // 每个回合的聚合验证总时间
 
     public static void main(String[] args) throws Exception {
-        Security.addProvider(new BouncyCastleProvider());
 
         // --- 配置测试参数 ---
         int totalMessages;
@@ -74,42 +51,21 @@ public class Main {
 
         System.out.println(String.format("Starting performance test for Total Messages: %d, Sensitive Messages: %d (Number of runs: %d)", totalMessages, sensitiveMessages, NUM_RUNS));
 
-        // --- Fabric Gateway Setup (仅在所有测试开始前连接一次) ---
-        Gateway gateway = null;
-        Network network = null;
-        Contract contract = null;
-        try {
-            Path walletPath = Paths.get("src", "main", "resources", "identities");
-            Wallet wallet = Wallets.newFileSystemWallet(walletPath);
+        try (
+            FabricGatewayConnection fabric =
+                    FabricGatewayConnection.connect()
+        ) {
+            final Contract contract =
+                    fabric.getContract();
 
-            String identityLabel = "Org1Admin";
+            System.out.println(
+                    "\n--- Successfully connected to " +
+                    "Fabric Network and DVAS chaincode ---"
+            );
 
-            if (wallet.get(identityLabel) == null) {
-                System.out.println("-----> Adding identity to wallet: " + identityLabel);
-                Path certificatePath = Paths.get("src", "main", "resources", "identities", "Org1", "Admin", "cert.pem");
-                Path privateKeyPath = Paths.get("src", "main", "resources", "identities", "Org1", "Admin", "priv_sk");
-
-                X509Certificate certificate = Identities.readX509Certificate(certificatePath);
-                PrivateKey privateKey = Identities.readPrivateKey(privateKeyPath);
-
-                Identity identity = Identities.newX509Identity("Org1MSP", certificate, privateKey);
-                wallet.put(identityLabel, identity);
-                System.out.println("-----> Identity added successfully.");
-            }
-
-            Path networkConfigPath = Paths.get("src", "main", "resources", "connection-org1.json");
-
-            Gateway.Builder builder = Gateway.createBuilder()
-                    .identity(wallet, identityLabel)
-                    .networkConfig(networkConfigPath)
-                    .discovery(false); // Ensure service discovery is disabled
-
-            gateway = builder.connect();
-            network = gateway.getNetwork(CHANNEL_NAME);
-            contract = network.getContract(CHAINCODE_NAME);
-
-            System.out.println("\n--- Successfully connected to Fabric Network and Chaincode ---");
-            System.out.println("Blockchain adapter initialized. Now starting performance measurements.");
+            System.out.println(
+                    "Starting DVAS performance measurements."
+            );
 
             // --- 外部循环用于进行多次测量并取平均 ---
             for (int run = 0; run < NUM_RUNS; run++) {
@@ -271,13 +227,12 @@ public class Main {
             } // End of NUM_RUNS loop
 
         } catch (Exception e) {
-            System.err.println("Fatal error during Fabric interaction: " + e.getMessage());
+            System.err.println(
+                    "Fatal error during Fabric interaction: " +
+                    e.getMessage()
+            );
+
             e.printStackTrace();
-        } finally {
-            if (gateway != null) {
-                gateway.close(); // 所有测试运行完毕后，关闭 Gateway 连接
-                System.out.println("--- Gateway connection closed ---"); 
-            }
         }
 
         // 计算并打印平均值
@@ -313,38 +268,5 @@ public class Main {
         if (element == null) return null;
         byte[] bytes = element.toBytes();
         return Base64.getEncoder().encodeToString(bytes);
-    }
-
-    // Identities 类保持不变 (已省略，假设你已拥有此部分代码)
-    static class Identities {
-        public static X509Certificate readX509Certificate(Path certificatePath) throws IOException {
-            try (java.io.Reader certReader = Files.newBufferedReader(certificatePath, StandardCharsets.UTF_8)) {
-                org.bouncycastle.openssl.PEMParser pemParser = new org.bouncycastle.openssl.PEMParser(certReader);
-                Object parsedObject = pemParser.readObject();
-                return (X509Certificate) new JcaX509CertificateConverter().setProvider(new BouncyCastleProvider()).getCertificate((X509CertificateHolder) parsedObject);
-            } catch (Exception e) {
-                throw new IOException("Failed to read certificate from " + certificatePath, e);
-            }
-        }
-
-        public static PrivateKey readPrivateKey(Path privateKeyPath) throws IOException {
-            try (java.io.Reader keyReader = Files.newBufferedReader(privateKeyPath, StandardCharsets.UTF_8)) {
-                org.bouncycastle.openssl.PEMParser pemParser = new org.bouncycastle.openssl.PEMParser(keyReader);
-                Object parsedObject = pemParser.readObject();
-                JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(new BouncyCastleProvider());
-                if (parsedObject instanceof PEMKeyPair) {
-                    return converter.getPrivateKey(((PEMKeyPair) parsedObject).getPrivateKeyInfo());
-                } else if (parsedObject instanceof PrivateKeyInfo) {
-                    return converter.getPrivateKey((PrivateKeyInfo) parsedObject);
-                } else {
-                    throw new IOException("Unable to read private key from " + privateKeyPath + ". Unknown object type: " + parsedObject.getClass().getName());
-                }
-            } catch (Exception e) {
-                throw new IOException("Failed to read private key from " + privateKeyPath, e);
-            }
-        }
-        public static Identity newX509Identity(String mspId, X509Certificate certificate, PrivateKey privateKey) {
-            return org.hyperledger.fabric.gateway.Identities.newX509Identity(mspId, certificate, privateKey);
-        }
     }
 }
