@@ -94,7 +94,7 @@ public class Setup {
         Pairing pairing = PairingFactory.getPairing(typeAParams);
         
         // 设置是否使用 PBC 库的优化
-        PairingFactory.getInstance().setUsePBCWhenPossible(true);
+        PairingFactory.getInstance().setUsePBCWhenPossible(false);
         G1 = pairing.getG1();
         G2 = pairing.getG2();
         Zp = pairing.getZr();

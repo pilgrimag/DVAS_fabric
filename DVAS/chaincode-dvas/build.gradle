@@ -1,72 +1,48 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '8.1.1' // 用于打包所有依赖到一个JAR
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'application'
 }
 
-repositories {
-    // !!! 关键：添加本地 JARs 目录，并将其放在最前面 !!!
-    flatDir { dirs 'libs' }
+group = 'com.dvas'
+version = '1.0.0'
 
-    mavenLocal()
+repositories {
     mavenCentral()
-    maven {
-        url 'https://jitpack.io'
-    }
-    maven { url 'https://maven.aliyun.com/repository/public' }
 }
 
 dependencies {
-    // Hyperledger Fabric Chaincode Shim API
-    // ！！！ 关键：只保留 fabric-chaincode-shim，不使用 fabric-contract-api-java ！！！
-    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.5.0'
-    // 注释掉或移除：implementation 'org.hyperledger.fabric-chaincode-java:fabric-contract-api-java:2.5.0'
+    implementation(
+        'org.hyperledger.fabric-chaincode-java:' +
+        'fabric-chaincode-shim:2.5.10'
+    )
 
-    // JPBC library (与您的原始 pom.xml 保持一致)
-    implementation 'it.unisa.dia.gas.jpbc:jpbc-api:2.0.0'
-    implementation 'it.unisa.dia.gas.jpbc:jpbc-pbc:2.0.0'
-    implementation 'it.unisa.dia.gas.jpbc:jpbc-crypto:2.0.0'
-    implementation 'it.unisa.dia.gas.jpbc:jpbc-mm:2.0.0'
-    implementation 'it.unisa.dia.gas.jpbc:jpbc-plaf:2.0.0'
-
-    // JNA (如果 JPBC 依赖它，保留)
-    implementation 'net.java.dev.jna:jna:3.2.5'
-    // Bouncy Castle (如果 JPBC 依赖它，保留)
-    implementation 'org.bouncycastle:bcprov-jdk16:1.46'
-
-    // 用于 JSON 序列化 (你的代码使用了 Gson)
-    implementation 'com.google.code.gson:gson:2.10.1' // 引入 Gson 库
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
-// ShadowJar 配置：将所有依赖打包进一个 Fat JAR
-shadowJar {
-    //archiveBaseName.set('dvas-chaincode') // 输出 JAR 文件名，例如 dvas-chaincode.jar
-    archiveBaseName.set('chaincode')
-    archiveClassifier.set('')
-    archiveVersion.set('')
-    // 关键：切换到低级Shim API后，Main-Class将是你的链码主类
-    manifest {
-        attributes 'Main-Class': 'com.dvas.chaincode.DVASChaincode' // 你的链码主类
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
-// 确保 application 块也存在，并且 mainClass 和 applicationName 设置正确，如下所示：
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+}
+
 application {
-    mainClass = 'com.dvas.chaincode.DVASChaincode' // 你的链码主类
+    mainClass = 'com.dvas.chaincode.DVASChaincode'
     applicationName = 'chaincode'
 }
 
-// 编译设置，确保兼容 Java 11
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
+shadowJar {
+    archiveBaseName.set('chaincode')
+    archiveClassifier.set('')
+    archiveVersion.set('')
 
-// settings.gradle 的内容（仅作参考，实际应在 settings.gradle 文件中）
-// pluginManagement {
-//     repositories {
-//         gradlePluginPortal() // 这是 Gradle 插件的默认中央仓库
-//         mavenCentral()       // 这通常也很有用
-//     }
-// }
-// rootProject.name = 'chaincode-dvas' // 这里设置您的项目名称
+    manifest {
+        attributes(
+            'Main-Class': 'com.dvas.chaincode.DVASChaincode'
+        )
+    }
+}

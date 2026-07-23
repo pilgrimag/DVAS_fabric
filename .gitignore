@@ -1,0 +1,18 @@
+# Maven
+**/target/
+
+# Gradle
+**/.gradle/
+**/build/
+
+# IDE
+.idea/
+**/*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+# Fabric runtime identities
+**/src/main/resources/identities/
+**/src/main/resources/connection-org*.json

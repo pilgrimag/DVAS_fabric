@@ -29,11 +29,6 @@
             <name>阿里云公共仓库</name>
             <url>https://maven.aliyun.com/repository/public</url>
         </repository>
-        <repository>
-            <id>jpbc-snap</id>
-            <name>JPBC Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        </repository>
     </repositories>
 
 
@@ -44,32 +39,7 @@
             <artifactId>jpbc-api</artifactId>
             <version>2.0.0</version>
         </dependency>
-        <dependency>
-            <groupId>it.unisa.dia.gas</groupId>
-            <artifactId>jpbc-pbc</artifactId>
-            <version>2.0.0</version>
-        </dependency>
 
-        <dependency>
-            <groupId>it.unisa.dia.gas</groupId>
-            <artifactId>jpbc-crypto</artifactId>
-            <version>2.0.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcprov-jdk16</artifactId>
-                </exclusion>
-                <!-- 理论上只需要排除bcprov-jdk16，因为jpbc-crypto只引入了这一个。
-                    但为了保险起见，如果jpbc也间接引入了其他bc库，也可以一并排除
-                    但是根据你提供的树，它只引入了bcprov-jdk16。 -->
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>it.unisa.dia.gas</groupId>
-            <artifactId>jpbc-mm</artifactId>
-            <version>2.0.0</version>
-        </dependency>
         <dependency>
             <groupId>it.unisa.dia.gas</groupId>
             <artifactId>jpbc-plaf</artifactId>
