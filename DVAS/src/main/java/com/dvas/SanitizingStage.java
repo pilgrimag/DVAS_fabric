@@ -80,7 +80,25 @@ public class SanitizingStage {
             Element H0 = setup.H0(data, signature.getV_i(), phi_i);
             Element H1 = setup.H1(data, signature.getV_i(), phi_i);
 
-            boolean res = pairingCheck(signature, publicKey, H0, Y, P, H1);
+            boolean res = pairingCheck(
+                signature,
+                publicKey,
+                H0,
+                Y,
+                P,
+                H1
+            );
+
+            if (!res) {
+                currentOffChainComputeTime +=
+                        System.nanoTime() - computeStart;
+
+                return new SanitizingSubTimings(
+                        currentOffChainComputeTime,
+                        currentFabricQueryTime,
+                        false
+                );
+            }
 
             // in ADM 
             if(ADM.contains(signature.getId())){

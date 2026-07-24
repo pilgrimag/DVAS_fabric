@@ -87,13 +87,25 @@ public final class Blockchain {
                         phiBase64
                 );
 
-        System.out.println(
-                "addMapping committed: " +
+        // System.out.println(
+        //         "addMapping committed: " +
+        //         new String(
+        //                 response,
+        //                 StandardCharsets.UTF_8
+        //         )
+        // );
+
+        final String result =
                 new String(
                         response,
                         StandardCharsets.UTF_8
-                )
-        );
+                );
+
+        if (result.isBlank()) {
+                throw new IllegalStateException(
+                        "addMapping returned an empty response."
+                );
+        }
     }
 
     public Element getPhiByPublicKey(

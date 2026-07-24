@@ -249,7 +249,7 @@ for (int i : ADM) {
     // System.out.println("e(H1', γ·V) = " + pairH1V);
 }
 //System.out.println("AggVer X: " + X );
-    right = right.mul(right2);
+    right = right1.duplicate().mul(right2).getImmutable();
 
 //System.out.println("left = " + left);
 //System.out.println("right1 = " + right1);

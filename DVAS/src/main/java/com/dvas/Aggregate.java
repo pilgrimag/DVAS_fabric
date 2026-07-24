@@ -137,7 +137,6 @@ public class Aggregate {
     //System.out.println("Agg Paringres: " + res);
 
     //Element Tleft = FsumT.mulZn(gammaPrime).getImmutable();
-    Element Tright = AsumT.mulZn(gammaPrime).getImmutable();
 
     for (Send s : Sends) {
         MM.add(s.getm_i());
@@ -150,7 +149,12 @@ public class Aggregate {
 
 
     // 返回聚合结果
-    return new AggregateResult(Tright, VMap, Z, MM);
+    return new AggregateResult(
+        T,
+        VMap,
+        Z,
+        MM
+    );
 }
 
 

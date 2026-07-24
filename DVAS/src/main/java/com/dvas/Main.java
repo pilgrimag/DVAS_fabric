@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Main {
-    private static final int NUM_RUNS = 20; // 运行次数，用于取平均。根据表格要求设置为20。
+    private static final int DEFAULT_NUM_RUNS = 20; // 运行次数，用于取平均。根据表格要求设置为20。
 
     // 用于收集每个阶段的执行时间 (每个List的一个元素代表一个回合的总时间)
     private static List<Long> setupTimes = new ArrayList<>();
@@ -33,23 +33,63 @@ public class Main {
         // --- 配置测试参数 ---
         int totalMessages;
         int sensitiveMessages;
+        int numberOfRuns;
 
-        if (args.length >= 2) {
-            try {
-                totalMessages = Integer.parseInt(args[0]);
-                sensitiveMessages = Integer.parseInt(args[1]);
-            } catch (NumberFormatException e) {
-                System.err.println("Error: Invalid number format for totalMessages or sensitiveMessages. Please provide integers.");
-                System.err.println("Usage: mvn exec:java -Dexec.args=\"<totalMessages> <sensitiveMessages>\"");
-                return;
-            }
-        } else {
-            System.err.println("Error: Insufficient command-line arguments. Please provide totalMessages and sensitiveMessages.");
-            System.err.println("Usage: mvn exec:java -Dexec.args=\"<totalMessages> <sensitiveMessages>\"");
-            return;
+        if (args.length < 2 || args.length > 3) {
+            throw new IllegalArgumentException(
+                    "Usage: mvn exec:java " +
+                    "-Dexec.args=\"<totalMessages> " +
+                    "<sensitiveMessages> [numberOfRuns]\""
+            );
         }
 
-        System.out.println(String.format("Starting performance test for Total Messages: %d, Sensitive Messages: %d (Number of runs: %d)", totalMessages, sensitiveMessages, NUM_RUNS));
+        try {
+            totalMessages =
+                    Integer.parseInt(args[0]);
+
+            sensitiveMessages =
+                    Integer.parseInt(args[1]);
+
+            numberOfRuns =
+                    args.length == 3
+                            ? Integer.parseInt(args[2])
+                            : DEFAULT_NUM_RUNS;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(
+                    "All experiment parameters must be integers.",
+                    e
+            );
+        }
+
+        if (totalMessages <= 0) {
+            throw new IllegalArgumentException(
+                    "totalMessages must be greater than zero."
+            );
+        }
+
+        if (
+            sensitiveMessages < 0 ||
+            sensitiveMessages > totalMessages
+        ) {
+            throw new IllegalArgumentException(
+                    "sensitiveMessages must satisfy " +
+                    "0 <= sensitiveMessages <= totalMessages."
+            );
+        }
+
+        if (numberOfRuns <= 0) {
+            throw new IllegalArgumentException(
+                    "numberOfRuns must be greater than zero."
+            );
+        }
+
+        System.out.printf(
+                "Starting DVAS experiment: " +
+                "totalMessages=%d, sensitiveMessages=%d, runs=%d%n",
+                totalMessages,
+                sensitiveMessages,
+                numberOfRuns
+        );
 
         try (
             FabricGatewayConnection fabric =
@@ -68,10 +108,14 @@ public class Main {
             );
 
             // --- 外部循环用于进行多次测量并取平均 ---
-            for (int run = 0; run < NUM_RUNS; run++) {
-                System.out.println(String.format("\n--- Starting Run %d/%d ---", run + 1, NUM_RUNS));
+            for (int run = 0; run < numberOfRuns; run++) {
+                System.out.printf(
+                        "%n--- Starting Run %d/%d ---%n",
+                        run + 1,
+                        numberOfRuns
+                );
 
-                Message M = new Message("zjl", "2025-1-7");
+                // Message M = new Message("zjl", "2025-1-7");
 
                 List<Integer> FIX = new ArrayList<>();
                 List<Integer> ADM = new ArrayList<>();
@@ -79,15 +123,26 @@ public class Main {
                 List<Element> VList = new ArrayList<>();
                 List<Element> PhiList = new ArrayList<>();
                 List<Element> UiList = new ArrayList<>();
-                List<Message> messages = new ArrayList<>();
-                for (int i = 0; i < totalMessages; i++) { messages.add(new Message("zjl", "2025-1-7")); }
+                List<Message> messages =
+                        new ArrayList<>();
+
+                for (int i = 0; i < totalMessages; i++) {
+                    messages.add(
+                            new Message(
+                                    "sensor-data-" + i,
+                                    "policy-2025-01-07"
+                            )
+                    );
+                }
+                // List<Message> messages = new ArrayList<>();
+                // for (int i = 0; i < totalMessages; i++) { messages.add(new Message("zjl", "2025-1-7")); }
                 List<com.dvas.Sign.Signature> signatures = new ArrayList<>();
 
 
                 // --- 1. Setup Phase ---
                 long setupStart = System.nanoTime();
                 Setup setup = new Setup();
-                Blockchain blockchain = new Blockchain(contract, setup.getPairing()); 
+                // Blockchain blockchain = new Blockchain(contract, setup.getPairing()); 
 
                 SensorKeyPair[] sensorKeys = new SensorKeyPair[totalMessages];
                 int[] sensorIDs = new int[totalMessages];
@@ -100,27 +155,87 @@ public class Main {
                 int dvNodeID = 111;
                 SensorKeyPair dvNodeKey = setup.distributeKeyToDVNode(dvNodeID);
                 long setupEnd = System.nanoTime();
+
+                Blockchain blockchain =
+                        new Blockchain(
+                                contract,
+                                setup.getPairing()
+                        );
+
                 setupTimes.add(setupEnd - setupStart);
                 // System.out.println(String.format("Setup Time: %.2f ms", (setupEnd - setupStart) / 1_000_000.0)); // 临时注释，统一在回合末尾打印
 
                 // --- 2. Join Phase ---
-                long joinStart = System.nanoTime();
-                Join join = new Join(setup);
-                for (int i = 0; i < totalMessages; i++) {
-                    System.out.println("joining");
-                    Index.add(i);
-                    boolean isSensitive = (i < sensitiveMessages);
-                    if (isSensitive) {
-                        ADM.add(i);
-                    } else {
-                        FIX.add(i);
-                    }
-                    join.groupTask(i, isSensitive, ADM, FIX);
-                }
-                long joinEnd = System.nanoTime();
-                joinTimes.add(joinEnd - joinStart);
+                // long joinStart = System.nanoTime();
+                // Join join = new Join(setup);
+                // for (int i = 0; i < totalMessages; i++) {
+                //     System.out.println("joining");
+                //     Index.add(i);
+                //     boolean isSensitive = (i < sensitiveMessages);
+                //     if (isSensitive) {
+                //         ADM.add(i);
+                //     } else {
+                //         FIX.add(i);
+                //     }
+                //     join.groupTask(i, isSensitive, ADM, FIX);
+                // }
+                // long joinEnd = System.nanoTime();
+                // joinTimes.add(joinEnd - joinStart);
                 // System.out.println(String.format("Join Time: %.2f ms", (joinEnd - joinStart) / 1_000_000.0)); // 临时注释，统一在回合末尾打印
 
+                // --- 2. Join Phase ---
+                long joinStart =
+                        System.nanoTime();
+
+                Join join =
+                        new Join(setup);
+
+                for (int i = 0; i < totalMessages; i++) {
+                    boolean authenticated =
+                            join.authenticateSensor(
+                                    i,
+                                    sensorKeys[i].getR_i(),
+                                    sensorKeys[i].getU_i()
+                            );
+
+                    if (!authenticated) {
+                        throw new IllegalStateException(
+                                "Join authentication failed " +
+                                "for sensor ID " + i
+                        );
+                    }
+
+                    boolean isSensitive =
+                            i < sensitiveMessages;
+
+                    join.groupTask(
+                            i,
+                            isSensitive,
+                            ADM,
+                            FIX
+                    );
+
+                    Index.add(i);
+                }
+
+                if (
+                    ADM.size() != sensitiveMessages ||
+                    FIX.size() !=
+                            totalMessages - sensitiveMessages
+                ) {
+                    throw new IllegalStateException(
+                            "Unexpected grouping result: " +
+                            "ADM=" + ADM +
+                            ", FIX=" + FIX
+                    );
+                }
+
+                long joinEnd =
+                        System.nanoTime();
+
+                joinTimes.add(
+                        joinEnd - joinStart
+                );
 
                 // --- 3. Sign Phase (纯密码学签名 + 区块链提交) ---
                 // 引入临时变量，累加当前回合的签名时间和提交时间
@@ -129,14 +244,33 @@ public class Main {
                 // System.out.println("sign");
                 for (int i = 0; i < totalMessages; i++) {
                     // 3.1 纯密码学签名计算计时
-                    System.out.println("signing");
+                    // System.out.println("signing");
                     long cryptoSignStart = System.nanoTime();
-                    Sign sign_mul = new Sign(setup, sensorKeys[i]);
-                    com.dvas.Sign.Signature sig_mul = sign_mul.generateSignature(
-                        M, "2025-1-7", sensorIDs[i],
-                        edgeNodeKey.getU_i(),
-                        dvNodeKey.getU_i()
-                    );
+                    // Sign sign_mul = new Sign(setup, sensorKeys[i]);
+                    // com.dvas.Sign.Signature sig_mul = sign_mul.generateSignature(
+                    //     M, "2025-1-7", sensorIDs[i],
+                    //     edgeNodeKey.getU_i(),
+                    //     dvNodeKey.getU_i()
+                    // );
+
+                    Sign sign_mul =
+                            new Sign(
+                                    setup,
+                                    sensorKeys[i]
+                            );
+
+                    Message message =
+                            messages.get(i);
+
+                    Sign.Signature sig_mul =
+                            sign_mul.generateSignature(
+                                    message,
+                                    message.getOmega(),
+                                    sensorIDs[i],
+                                    edgeNodeKey.getU_i(),
+                                    dvNodeKey.getU_i()
+                            );
+
                     signatures.add(sig_mul);
                     VList.add(sig_mul.getV_i());
                     PhiList.add(sig_mul.getPhi_i());
@@ -148,7 +282,7 @@ public class Main {
                     long submitStart = System.nanoTime();
                     String publicKeyBase64 = elementToBase64String(sensorKeys[i].getU_i());
                     String phiBase64 = elementToBase64String(sig_mul.getPhi_i());
-                    System.out.println("addmap前");
+                    // System.out.println("addmap前");
                     blockchain.addMapping(publicKeyBase64, phiBase64);
                     // System.out.println("addmap后");
                     long submitEnd = System.nanoTime();
@@ -185,6 +319,13 @@ public class Main {
                     );
                     currentRunComputeTime += subTimings.offChainComputeTime;     // 累加纯链下计算时间
                     currentRunFabricQueryTime += subTimings.fabricQueryTime;    // 累加 Fabric 查询时间
+                
+                    if (!subTimings.result) {
+                        throw new IllegalStateException(
+                                "Sanitizing verification failed " +
+                                "for sensor ID " + i
+                        );
+                    }
                 }
                 long sanitizingTotalEnd = System.nanoTime();
 
@@ -198,6 +339,17 @@ public class Main {
                 long aggregateStart = System.nanoTime();
                 Aggregate agg = new Aggregate(setup);
                 Aggregate.AggregateResult aggResult = agg.computeAggregate(setup, setup.getP(), dvNodeKey.getU_i(), signatures, sensorIDs, ADM, FIX, new HashMap<>(), new ArrayList<>(), Index);
+                
+                if (
+                    aggResult == null ||
+                    aggResult.getT() == null ||
+                    aggResult.getZ() == null
+                ) {
+                    throw new IllegalStateException(
+                            "Aggregate generation failed."
+                    );
+                }
+                
                 long aggregateEnd = System.nanoTime();
                 aggregateTimes.add(aggregateEnd - aggregateStart);
                 // System.out.println(String.format("Aggregate Time (Off-chain): %.2f ms", (aggregateEnd - aggregateStart) / 1_000_000.0)); // 临时注释，统一在回合末尾打印
@@ -207,6 +359,14 @@ public class Main {
                 AggVerify aggVerify = new AggVerify(setup);
                 boolean aggres = aggVerify.verifyAggregate(setup, aggResult.getT(), setup.getP(), edgeNodeKey.getU_i(), dvNodeKey.getu_i(), aggResult.getZ(), FIX, ADM, messages, UiMap, aggResult, PhiList, totalMessages, Index, UiList, VList, new ArrayList<>());
                 long aggVerifyEnd = System.nanoTime();
+
+                if (!aggres) {
+                    throw new IllegalStateException(
+                            "Aggregate verification failed " +
+                            "in run " + (run + 1)
+                    );
+                }
+
                 aggVerifyTimes.add(aggVerifyEnd - aggVerifyStart);
                 // System.out.println(String.format("Agg Verify Time (Off-chain): %.2f ms", (aggVerifyEnd - aggVerifyStart) / 1_000_000.0)); // 临时注释，统一在回合末尾打印
 
@@ -226,17 +386,26 @@ public class Main {
 
             } // End of NUM_RUNS loop
 
+        // } catch (Exception e) {
+        //     System.err.println(
+        //             "Fatal error during Fabric interaction: " +
+        //             e.getMessage()
+        //     );
+
+        //     e.printStackTrace();
+        // }
+
         } catch (Exception e) {
             System.err.println(
-                    "Fatal error during Fabric interaction: " +
+                    "Fatal error during DVAS experiment: " +
                     e.getMessage()
             );
 
-            e.printStackTrace();
+            throw e;
         }
 
         // 计算并打印平均值
-        System.out.println("\n--- Average Performance Results (over " + NUM_RUNS + " runs) ---");
+        System.out.println("\n--- Average Performance Results (over " + numberOfRuns + " runs) ---");
         System.out.println(String.format("Average Setup Time:       %.2f ms", calculateAverage(setupTimes)));
         System.out.println(String.format("Average Join Time:        %.2f ms", calculateAverage(joinTimes)));
         System.out.println(String.format("Average Sign Time (Pure Crypto): %.2f ms", calculateAverage(signTimes))); 
