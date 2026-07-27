@@ -86,58 +86,9 @@ public class Aggregate {
     }
     sumT = sumT.getImmutable();
 
-    Element FsumT = G1.newZeroElement();
-    for(int i : FIX){
-        FsumT = FsumT.add(signatures.get(i).getT_i());
-    }
-    //System.out.println("Agg FsumT: " + FsumT);
-
-    Element AsumT = G1.newZeroElement();
-    for(int i : ADM){
-        AsumT = AsumT.add(signatures.get(i).getT_i());
-    }
-
-    FsumT = FsumT.getImmutable();
-    AsumT = AsumT.getImmutable();
-    sumT = sumT.getImmutable();
-
-    // System.out.println("Agg AsumT: " + AsumT);
-
-    // System.out.println("Agg F+A sumT: " + FsumT.add(AsumT));
-     //System.out.println("Agg 里的sumT: " + sumT);
-
-    Element right1 = pairing.getGT().newOneElement();
-    Element right2 = pairing.getGT().newOneElement();
-    Element left = pairing.getGT().newOneElement();
-    Element right = pairing.getGT().newOneElement();
-    Element res = pairing.getGT().newOneElement();
-
-
-    right1 = right1.mul(pairing.pairing(FsumT,P));
-    right2 = right2.mul(pairing.pairing(AsumT,P));
-    left = left.mul(pairing.pairing(sumT,P));
-    right = right1.mul(right2).getImmutable();
-
-    //System.out.println("Agg i in FIx e(): " + right1);
-
-    // if (left.isEqual(right))
-    // {
-    //     System.out.println("yeah! ");
-
-    // }
-    // else{
-    //     System.out.println("TAT ");
-    // }
-
-
     // 计算 T = γ' * ΣT_i
     Element T = sumT.mulZn(gammaPrime).getImmutable();
     //System.out.println("Agg T: " + T);
-    res = pairing.pairing(T,P);
-    //System.out.println("Agg Paringres: " + res);
-
-    //Element Tleft = FsumT.mulZn(gammaPrime).getImmutable();
-
     for (Send s : Sends) {
         MM.add(s.getm_i());
     }

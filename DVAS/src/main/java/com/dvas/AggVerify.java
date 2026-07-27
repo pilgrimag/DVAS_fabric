@@ -49,31 +49,20 @@ public class AggVerify {
 
        
     ) {
-        List<Element> admHash0 = new ArrayList<>();
-        List<Element> admHash1 = new ArrayList<>();
-        List<Element> fixHash0 = new ArrayList<>();
-        List<Element> fixHash1 = new ArrayList<>();
-        List<Element> tHatList = new ArrayList<>(n);
-        List<Element> HatPhiList = new ArrayList<>();
         Map<Integer, Element> ti_Map = new HashMap<>();
         Map<Integer, Element> admMap0 = new HashMap<>();//对应admHash0
         Map<Integer, Element> admMap1 = new HashMap<>();//对应admHash1
         Map<Integer, Element> fixMap0 = new HashMap<>();//对应fixHash0
         Map<Integer, Element> fixMap1 = new HashMap<>();//对应fixHash1
-        Map<Integer, Element> phihatMap1 = new HashMap<>();
 
         Element right1 = pairing.getGT().newOneElement();
-        Element right11 = pairing.getGT().newOneElement();
         Element right2 = pairing.getGT().newOneElement();
         Element right = pairing.getGT().newOneElement();
 
 
-        Map<Integer, Element> VMap = result.getVMap();
-        for (int i : FIX) {
-        //System.out.println("AggVer Begin id: " + i + " vmap: "+VMap.get(i));
-    }
+        Map<Integer, Element> VMap =
+                result.getVMap();
 
-        
         //提前备好要用的东西
         Element sumPhiPrime = setup.pairing.getG1().newZeroElement();
         Element yZ = Z.mulZn(y).getImmutable(); 
@@ -81,7 +70,7 @@ public class AggVerify {
         //System.out.println("AggVer Z value : " + Z);
 
         // 1- 计算 index 里的所有的 \hat{t_i} 数量:n
-        for (int sensorId : Index)//这个i对应的是id，我应该确认每个集合里的i是相关联的才行
+        for (int sensorId : ADM)//这个i对应的是id，我应该确认每个集合里的i是相关联的才行
          {
             String omegaElement = messages.get(sensorId).getOmega();
             Element tHat = setup.H(messages.get(sensorId).getM(), omegaElement, pairing.pairing(UiMap.get(sensorId), X).powZn(y));
@@ -91,7 +80,6 @@ public class AggVerify {
             //System.out.println("AggVerify id: " + sensorId +" e(U_i, X)^{y}: " + pairing.pairing(UList.get(sensorId), X).powZn(y));
             //System.out.println("AggVerify id: " + sensorId + "时的m_i: " + messages.get(sensorId).getM() + " omega_i:" + omegaElement);
             //System.out.println("AggVerify id: " + sensorId + "时的tHat: " + tHat );
-            tHatList.add(tHat);
             ti_Map.put(sensorId,tHat.getImmutable());
 
             // String output = "聚合时-传感器id为: " + sensorId;
@@ -105,8 +93,6 @@ public class AggVerify {
         for (int i : FIX) {
             Element H0 = setup.H0(messages.get(i).getM(), VMap.get(i), PhiList.get(i));
             Element H1 = setup.H1(messages.get(i).getM(), VMap.get(i), PhiList.get(i));
-            fixHash0.add(H0);
-            fixHash1.add(H1);
             fixMap0.put(i, H0.getImmutable());
             fixMap1.put(i, H1.getImmutable());
         }
@@ -126,8 +112,6 @@ public class AggVerify {
             //System.out.println("AggVer id: " + i + "时的PhiHat': " + PhiHat + " t_i: " + tHat);
     
             // 将 PhiHat 添加到 HatPhiList
-            HatPhiList.add(PhiHat);
-            phihatMap1.put(i,PhiHat);
     
             // 累加 PhiHat 到 sumPhiPrime
             sumPhiPrime = sumPhiPrime.add(PhiHat);
@@ -142,8 +126,6 @@ public class AggVerify {
             //System.out.println("AggVer id: " + i + "时的hatHashValue0': " +  HashValue0);
             Element HashValue1 = setup.H1(messages.get(i).getM(), VMap.get(i), PhiHat);
             //System.out.println("AggVer id: " + i + "时的HashValue1': " +  HashValue1);
-            admHash0.add(HashValue0);
-            admHash1.add(HashValue1);
             admMap0.put(i,HashValue0.getImmutable());
             admMap1.put(i,HashValue1.getImmutable());
         }
@@ -219,35 +201,6 @@ for (int i : ADM) {
     //System.out.println("V Value: " +  VMap.get(i));
 }
 
-for (int i : FIX) {
-    Element H0 = fixMap0.get(i);
-    Element H1 = fixMap1.get(i);
-    Element U = UiMap.get(i).powZn(gamma);
-    Element V = VMap.get(i).powZn(gamma);
-
-    Element pairH0U = pairing.pairing(H0, U);
-    Element pairH1V = pairing.pairing(H1, V);
-
-    // System.out.println("FIX id: " + i);
-    // System.out.println("e(H0, γ·U) = " + pairH0U);
-    // System.out.println("e(H1, γ·V) = " + pairH1V);
-}
-
-for (int i : ADM) {
-    Element H0p = admMap0.get(i);
-    Element H1p = admMap1.get(i);
-
-    Element Xg = X.powZn(gamma);
-    
-    Element Vg = VMap.get(i).powZn(gamma);
-
-    Element pairH0X = pairing.pairing(H0p, Xg);
-    Element pairH1V = pairing.pairing(H1p, Vg);
-
-    // System.out.println("ADM id: " + i);
-    // System.out.println("e(H0', γ·X) = " + pairH0X);
-    // System.out.println("e(H1', γ·V) = " + pairH1V);
-}
 //System.out.println("AggVer X: " + X );
     right = right1.duplicate().mul(right2).getImmutable();
 
