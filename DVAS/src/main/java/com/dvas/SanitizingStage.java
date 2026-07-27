@@ -142,10 +142,34 @@ public class SanitizingStage {
         return leftSide.isEqual(rightSide);
     }
 
-    // fmod 算法：使用 SHA-256 哈希修改敏感数据 m_i（String 类型）
-    public static String fmod(String m, Setup setup) {
-        // 由于你的注释，这里不进行实际的哈希计算，直接返回 m
-        // 如果你需要实际的哈希，请取消注释并确保相关导入
-        return m;
+    /**
+     * Deterministic masking desensitization rule.
+     *
+     * <p>Each UTF-16 code unit is replaced with {@code '*'}.
+     * The benchmark uses ASCII sensor reports, so this preserves
+     * both the character length and the UTF-8 byte length while
+     * ensuring that protected content is not retained.</p>
+     *
+     * <p>Rule identifier: DVAS_MASK_V1.</p>
+     *
+     * @param m original sensitive message
+     * @param setup retained for interface compatibility
+     * @return masked message with the same character length
+     */
+    public static String fmod(
+            final String m,
+            final Setup setup) {
+
+        if (m == null) {
+            throw new IllegalArgumentException(
+                    "Sensitive message cannot be null."
+            );
+        }
+
+        if (m.isEmpty()) {
+            return m;
+        }
+
+        return "*".repeat(m.length());
     }
 }

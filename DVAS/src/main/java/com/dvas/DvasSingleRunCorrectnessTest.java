@@ -227,6 +227,9 @@ public final class DvasSingleRunCorrectnessTest {
         final List<Element> originalPhi =
                 new ArrayList<>();
 
+        final List<String> originalMessages =
+                new ArrayList<>();
+
         for (int i = 0; i < totalSensors; i++) {
             final Message message =
                     new Message(
@@ -235,6 +238,7 @@ public final class DvasSingleRunCorrectnessTest {
                     );
 
             messages.add(message);
+            originalMessages.add(message.getM());
 
             final Sign signer =
                     new Sign(
@@ -391,6 +395,33 @@ public final class DvasSingleRunCorrectnessTest {
                         "ADM signature V_i was not randomized " +
                         "for sensor " + i
                 );
+
+                require(
+                        !messages.get(i)
+                                .getM()
+                                .equals(originalMessages.get(i)),
+                        "ADM message content was not sanitized " +
+                        "for sensor " + i
+                );
+
+                require(
+                        messages.get(i)
+                                .getM()
+                                .length()
+                                == originalMessages.get(i).length(),
+                        "ADM masking changed message length " +
+                        "for sensor " + i
+                );
+
+                require(
+                        messages.get(i)
+                                .getM()
+                                .chars()
+                                .allMatch(character ->
+                                        character == '*'),
+                        "ADM message contains unmasked content " +
+                        "for sensor " + i
+                );
             } else {
                 require(
                         signatures.get(i)
@@ -412,6 +443,13 @@ public final class DvasSingleRunCorrectnessTest {
                                 .isEqual(originalPhi.get(i)),
                         "FIX signature Phi_i was unexpectedly changed."
                 );
+
+                require(
+                        messages.get(i)
+                                .getM()
+                                .equals(originalMessages.get(i)),
+                        "FIX message was unexpectedly sanitized."
+                );
             }
         }
 
@@ -419,12 +457,9 @@ public final class DvasSingleRunCorrectnessTest {
                 "  PASS: all original signatures verified."
         );
 
-        /*
-         * Current fmod() returns its input unchanged. This is
-         * reported rather than treated as successful sanitization.
-         */
         System.out.println(
-                "  NOTE: fmod currently leaves message content unchanged."
+                "  PASS: ADM messages were masked and FIX messages " +
+                "remained unchanged."
         );
 
         /*
