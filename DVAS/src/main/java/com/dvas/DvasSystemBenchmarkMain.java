@@ -1182,7 +1182,7 @@ public final class DvasSystemBenchmarkMain {
 
     private enum Profile {
         SMOKE("smoke", 1, 2),
-        FULL("full", 5, 30);
+        FULL("full", 1, 5);
 
         private final String name;
         private final int warmupRuns;

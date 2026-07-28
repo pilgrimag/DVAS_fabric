@@ -50,8 +50,8 @@ PROFILE_CONFIG = {
         "sizes": (2, 4),
     },
     "full": {
-        "runs": 30,
-        "warmups": 5,
+        "runs": 5,
+        "warmups": 1,
         "sizes": (50, 100, 200, 400, 600, 800, 1000),
     },
 }
